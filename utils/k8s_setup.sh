@@ -59,7 +59,12 @@ sudo apt-mark hold kubelet kubeadm kubectl
 
 sudo swapoff -a
 
-sudo rm /etc/containerd/config.toml
+FILE=/etc/containerd/config.toml
+if [ -f "$FILE" ]; then
+  sudo rm /etc/containerd/config.toml
+fi
+
+ 
 sudo systemctl restart containerd
 
 ### for control plane (paste this to /etc/systemd/system/kubelet.service.d/10-kubeadm.conf) 

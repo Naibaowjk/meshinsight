@@ -18,7 +18,7 @@ pip3 install -r requirements.txt
 # Install BCC (Ubuntu 20.04)
 cd $MESHINSIGHT_DIR
 sudo apt update
-sudo apt install -y bison build-essential cmake flex git libedit-dev   libllvm11 llvm-11-dev libclang-11-dev python zlib1g-dev libelf-dev libfl-dev python3-distutils
+sudo apt install -y bison build-essential cmake flex git libedit-dev   libllvm11 llvm-11-dev libclang-11-dev zlib1g-dev libelf-dev libfl-dev python3-distutils
 # Delete if installed
 if [ -d "$MESHINSIGHT_DIR/bcc" ];
 then sudo rm -rf $MESHINSIGHT_DIR/bcc;
