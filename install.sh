@@ -2,6 +2,41 @@
 
 set -ex
 
+# Set default value for the argument
+valid_proxy=("istio" "linkerd")
+proxy="istio"
+
+# Parse command line options
+while getopts ":hp:" opt; do
+  case $opt in
+    h)
+      echo "Usage: $0 [-p proxy]"
+      echo "  -p   Proxy to use (valid options are: ${valid_proxy[*]})"
+      exit 0
+      ;;
+    p)
+      proxy="$OPTARG"
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [[ " ${valid_proxy[*]} " =~ " ${proxy} " ]]; then
+    echo "Option '$proxy' is valid"
+else
+    echo "Invalid option: $proxy"
+    echo "Valid options are: ${valid_proxy[*]}"
+    exit 1
+fi
+
+
 # Set up env variable
 echo "export MESHINSIGHT_DIR=$PWD" >> ~/.bashrc
 . ~/.bashrc
@@ -18,7 +53,16 @@ pip3 install -r requirements.txt
 # Install BCC (Ubuntu 20.04)
 cd $MESHINSIGHT_DIR
 sudo apt update
-sudo apt install -y bison build-essential cmake flex git libedit-dev   libllvm11 llvm-11-dev libclang-11-dev zlib1g-dev libelf-dev libfl-dev python3-distutils
+
+version=$(lsb_release -r | awk '{print $2}')
+if [ $(echo "$version == 22.04" | bc) -eq 1 ]; then
+  # Execute command for Ubuntu 22.04
+  sudo apt install -y bison build-essential cmake flex git libedit-dev libllvm14 llvm-14-dev libclang-14-dev python3 zlib1g-dev libelf-dev libfl-dev python3-distutils
+else
+  # Execute command for Ubuntu 20.04
+  sudo apt install -y bison build-essential cmake flex git libedit-dev libllvm11 llvm-11-dev libclang-11-dev python zlib1g-dev libelf-dev libfl-dev python3-distutils
+fi
+
 # Delete if installed
 if [ -d "$MESHINSIGHT_DIR/bcc" ];
 then sudo rm -rf $MESHINSIGHT_DIR/bcc;
@@ -34,17 +78,29 @@ make -j 2
 sudo make install
 popd
 
-# Install Istio
-cd $MESHINSIGHT_DIR
-# Delete if installed
-if [ -d "$MESHINSIGHT_DIR/istio-1.14.1" ];
-then sudo rm -rf $MESHINSIGHT_DIR/istio-1.14.1;
+# Install Istio or Linkerd
+if [ "$proxy" == "istio" ]; then
+  cd $MESHINSIGHT_DIR
+  # Delete if installed
+  if [ -d "$MESHINSIGHT_DIR/istio-1.14.1" ];
+  then sudo rm -rf $MESHINSIGHT_DIR/istio-1.14.1;
+  fi
+  curl -k -L https://istio.io/downloadIstio | ISTIO_VERSION=1.14.1 sh -
+  cd istio-1.14.1
+  sudo cp bin/istioctl /usr/local/bin
+  istioctl x precheck
+  istioctl install --set profile=default -y
+else
+  cd $MESHINSIGHT_DIR
+  curl --proto '=https' --tlsv1.2 -sSfL https://run.linkerd.io/install | sh
+  echo "export PATH=$PATH:~/.linkerd2/bin" > ~/.bashrc
+  source ~/.bashrc
+  linkerd version
+  linkerd check --pre
+  linkerd install --crds | kubectl apply -f -
+  linkerd install | kubectl apply -f -
+  linkerd check
 fi
-curl -k -L https://istio.io/downloadIstio | ISTIO_VERSION=1.14.1 sh -
-cd istio-1.14.1
-sudo cp bin/istioctl /usr/local/bin
-istioctl x precheck
-istioctl install --set profile=default -y
 
 # turn on auto-injection
 kubectl label namespace default istio-injection=enabled --overwrite
