@@ -26,11 +26,11 @@ fi
 git clone https://github.com/iovisor/bcc.git
 mkdir bcc/build; cd bcc/build
 cmake ..
-make -j $(nproc)
+make -j 1
 sudo make install
 cmake -DPYTHON_CMD=python3 .. # build python3 binding
 pushd src/python/
-make -j $(nproc)
+make -j 2
 sudo make install
 popd
 
@@ -60,7 +60,7 @@ then sudo rm -rf $MESHINSIGHT_DIR/meshinsight/profiler/wrk;
 fi
 git clone https://github.com/wg/wrk.git
 cd wrk
-make -j $(nproc)
+make -j 2
 
 cd $MESHINSIGHT_DIR/meshinsight/profiler
 # Delete if installed
@@ -69,7 +69,8 @@ then sudo rm -rf $MESHINSIGHT_DIR/meshinsight/profiler/wrk2;
 fi
 git clone https://github.com/giltene/wrk2.git
 cd wrk2
-make -j $(nproc)
+sudo apt-get install libssl-dev
+make -j 2
 cd $MESHINSIGHT_DIR
 
 set +ex
