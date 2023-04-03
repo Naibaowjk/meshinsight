@@ -18,20 +18,20 @@ ISTIO:
         IPC: process_backlog
         READ: vfs_readv
         WRITE: vfs_writev
-        EPOLL: ep_send_events
+        # EPOLL: ep_send_events
         USER: :*onReadReady*    
       HTTP: 
         IPC: process_backlog
         READ: vfs_readv
         WRITE: vfs_writev
-        EPOLL: ep_send_events
+        # EPOLL: ep_send_events
         USER: :*onReadReady*  
         PARSE: :*http_parser_execute*
       GRPC: 
         IPC: process_backlog
         READ: vfs_readv
         WRITE: vfs_writev
-        EPOLL: ep_send_events
+        # EPOLL: ep_send_events
         USER: :*onReadReady*  
         PARSE: :*nghttp2_session_mem_recv*
     APP:
@@ -45,7 +45,7 @@ ISTIO:
       WRITE: 
           - process_backlog
           - Envoy::Network::IoSocketHandleImpl::writev
-      EPOLL: do_epoll_wait 
+      # EPOLL: do_epoll_wait 
       USER: 
         - wrk:worker_0    
         - wrk:worker_1
