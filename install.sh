@@ -45,6 +45,7 @@ echo "export MESHINSIGHT_DIR=$PWD" >> ~/.bashrc
 sudo apt-get update
 sudo apt-get install -y linux-tools-common linux-tools-generic linux-tools-`uname -r`
 sudo apt-get install -y sysstat
+sudo apt-get install libssl-dev
 
 # Python Dependencies
 sudo apt install -y python3-pip
@@ -68,13 +69,16 @@ if [ -d "$MESHINSIGHT_DIR/bcc" ];
 then sudo rm -rf $MESHINSIGHT_DIR/bcc;
 fi
 git clone https://github.com/iovisor/bcc.git
+cd bcc
+git checkout dff24c398ff54aaf82f68efe4df49650144e6ade
+cd ..
 mkdir bcc/build; cd bcc/build
 cmake ..
-make -j 1
+make -j $(nproc)
 sudo make install
 cmake -DPYTHON_CMD=python3 .. # build python3 binding
 pushd src/python/
-make -j 2
+make -j $(nproc)
 sudo make install
 popd
 
@@ -116,7 +120,7 @@ then sudo rm -rf $MESHINSIGHT_DIR/meshinsight/profiler/wrk;
 fi
 git clone https://github.com/wg/wrk.git
 cd wrk
-make -j 2
+make -j $(nproc)
 
 cd $MESHINSIGHT_DIR/meshinsight/profiler
 # Delete if installed
@@ -126,7 +130,7 @@ fi
 git clone https://github.com/giltene/wrk2.git
 cd wrk2
 sudo apt-get install libssl-dev
-make -j 2
+make -j $(nproc)
 cd $MESHINSIGHT_DIR
 
 set +ex
