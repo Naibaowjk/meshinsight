@@ -115,7 +115,8 @@ fi
 
 sudo kubeadm reset -f
 sudo rm -rf $HOME/.kube
-
+echo "not init, pls join to master"
+exit
 sudo kubeadm init --pod-network-cidr 10.244.0.0/17 # check the output and execute command to setup the cluster
 
 mkdir -p $HOME/.kube
